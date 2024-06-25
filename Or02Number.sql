@@ -34,6 +34,8 @@ select trunc(12345.12345, 2) from dual;      --> 12345.12
 select trunc(12345.12345) from dual;         --> 12345
 select trunc(12345.12345, -2) from dual;     --> 12300
 
+////////////////////////////////////////////////////////////////////////////////////////////
+
 /* 시나리오 ] 사원 테이블에서 영업 사원의 급여에 대한 커미션을 계산하여
 합한 결과를 출력하는 쿼리문을 작성하시오.
 ex ) 급여: 1000, 보너스율: 0.1
@@ -55,3 +57,42 @@ from employees where job_id like 'SA_%';
 -- 4 ) 계산식이 포함된 컬럼명에 별칭을 부여한다.
 select first_name, salary, trunc(commission_pct, 1) as comm_pct, salary+(salary*trunc(commission_pct, 1)) TotalSalary
 from employees where job_id like 'SA_%';
+
+/* 소수점 관련 함수 */
+/* ceil(): 소수점 이하를 무조건 올림 처리 */
+select ceil(32.8) from dual;
+select ceil(32.2) from dual;
+--> 둘 다 33이 출력된다.
+
+/* floor(): 소수점 이하를 무조건 버림 처리 */
+select floor(32.8) from dual;
+select floor(32.2) from dual;
+--> 둘 다 32가 출력된다.
+
+/* round(값, 자리수): 반올림 처리
+        두 번째 인자가
+            - 없는 경우: 소수점 첫 번째 자리가 5 이상이면 올림, 미만이면 버림
+            - 있는 경우: 숫자만큼 소수점이 표현되므로 그 다음 수가 5 이상이면 올림, 미만이면 버림 */
+select round(0.123), round(0.543) from dual;
+--> 각각 버림과 올림 처리하여 0, 1을 출력한다.
+
+select round(0.1234567, 6), round(2.345612, 4) from dual;
+--> 첫 번째 항목: 소수 이하 6자리까지 표현하므로 7을 올림 처리한다.
+--> 두 번째 항목: 소수 이하 4자리까지 표현하므로 1을 버림 처리한다.
+
+/* mod() : 나머지를 구하는 함수 */
+select mod(99, 4) "99를 4로 나눈 나머지" from dual;
+
+/* power(): 거듭제곱을 구하는 함수 */
+select power(2, 10) "2의 10승" from dual;
+
+/* sqrt(): 제곱근(루트)을 구하는 함수 */
+select sqrt(49) "49의 제곱근" from dual;
+
+
+
+
+
+
+
+

@@ -108,7 +108,7 @@ select * from employees where salary between 4000 and 8000;
 : 컬럼에서 중복되는 레코드를 제거할 때 사용한다.
 특정 조건으로 select 했을 때 하나의 컬럼에서 중복되는 값이 있는 경우
 중복값을 제거한 후 결과를 출력할 수 있다.
-=> 담당 업무 아이디의 중복을 제거한 후 인출하시오. */
+=> 담당업무 아이디의 중복을 제거한 후 인출하시오. */
 select job_id from employees;
 select distinct job_id from employees;
 
@@ -163,3 +163,64 @@ from employees order by department_id desc, salary asc;
 select * from employees where commission_pct is null;
 -- 영업 사원이면서 급여가 8000 이상인 사원을 조회하시오.
 select * from employees where commission_pct is not null and salary>=8000;
+
+/*************************************************************************************************************/
+
+/* 1. 덧셈 연산자를 이용하여 모든 사원에 대해서 $300의 급여 인상을 계산한 후
+이름, 급여, 인상된 급여를 출력하시오. */
+select ename, sal, sal+300 from emp;
+
+/* 2. 사원의 이름, 급여, 연봉을 수입이 많은 것부터 작은순으로 출력하시오.
+연봉은 월급에 12를 곱한 후 $100을 더해서 계산하시오. */
+select ename, sal, (sal*12)+100 from emp order by (sal*12)+100 desc;
+
+/* 3. 급여가 2000을 넘는 사원의 이름과 급여를 내림차순으로 정렬하여 출력하시오. */
+select ename, sal from emp where sal>2000 order by sal desc;
+
+/* 4. 사원 번호가 7782인 사원의 이름과 부서 번호를 출력하시오. */
+select ename, deptno from emp where empno=7782;
+
+/* 5. 급여가 2000에서 3000 사이에 포함되지 않는 사원의 이름과 급여를 출력하시오. */
+select ename, sal from emp where sal>=2000 and sal<=3000;
+
+/* 6. 입사일이 81년02월20일부터 81년05월01일 사이인
+사원의 이름, 담당업무, 입사일을 출력하시오. */
+select ename, job, to_char(hiredate, 'yy/mm/dd')
+from emp where hiredate>='81/02/20' and hiredate<='81/05/01';
+
+/* 7. 부서 번호가 20 및 30에 속한 사원의 이름과 부서 번호를 출력하되
+이름을 기준으로 내림차순으로 출력하시오. */
+select ename, deptno from emp where deptno=20 or deptno=30 order by ename desc;
+
+/* 8. 사원의 급여가 2000에서 3000 사이에 포함되고 부서 번호가 20 또는 30인
+사원의 이름, 급여, 부서 번호를 출력하되 이름을 기준으로 오름차순으로 출력하시오. */
+select ename, sal, deptno from emp
+where (sal>=2000 and sal<=3000) and (deptno=20 or deptno=30)
+order by ename asc;
+
+/* 9. 1981년도에 입사한 사원의 이름과 입사일을 출력하시오.
+(like 연산자와 와일드카드 사용) */
+select ename, hiredate from emp where hiredate like '81%';
+
+/* 10. 관리자가 없는 사원의 이름과 담당업무를 출력하시오. */
+select ename, job from emp where mgr is null;
+
+/* 11. 커미션을 받을 수 있는 자격이 되는 사원의 이름, 급여, 커미션을 출력하되
+급여 및 커미션을 기준으로 내림차순으로 정렬하여 출력하시오. */
+select ename, sal, comm from emp where comm is not null
+order by sal desc, comm desc;
+
+/* 12. 이름의 세 번째 문자가 R인 사원의 이름을 표시하시오. */
+select ename from emp where ename like '__R%';
+
+/* 13. 이름에 A와 E를 모두 포함하고 있는 사원의 이름을 표시하시오. */
+select ename from emp where ename like '%A%' and ename like '%E%';
+
+/* 14. 담당업무가 사무원(CLERK) 또는 영업사원(SALESMAN)이면서
+급여가 $1600, $950, $1300이 아닌 사원의 이름, 담당업무, 급여를 출력하시오. */
+select ename, job, sal from emp
+where (job='CLERK' or job='SALESMAN') and (sal!=1600 and sal!=950 and sal!=1300);
+
+/* 15. 커미션이 $500 이상인 사원의 이름과 급여, 커미션을 출력하시오. */
+select ename, sal, comm from emp
+where comm>=500;
