@@ -96,3 +96,107 @@ select * from departments where upper(department_name)='SALES';  --> 80번 부서임
 select
     ltrim(to_char(avg(salary), '$999,000.0'))
 from employees where department_id=80;
+
+/* min() / max()
+: 최소값, 최대값을 찾을 때 사용하는 함수 */
+
+/* 전체 사원 중 급여가 가장 적은 직원은 누구인가요? */
+
+/* 아래 쿼리문은 에러가 발생한다.
+그룹 함수는 일반 컬럼에 바로 사용할 수 없다.
+이와 같은 경우에는 뒤에서 학습할 '서브쿼리'를 사용해야 한다. */
+select first_name, sal from employees where salary=min(salary);
+
+-- 전체 사원 중 가장 낮은 급여는 얼마인가요? (= 급여의 최소값은 얼마인가요?)
+select min(salary) from employees;
+-- 따라서 2100을 받는 직원을 찾으면 해결할 수 있다.
+select first_name, last_name, salary
+from employees where salary=2100;
+-- 위 2개의 쿼리문을 합치면 아래와 같은 서브쿼리가 된다.
+select first_name, last_name, salary
+from employees where salary=(select min(salary) from employees);
+
+/* group by 절
+: 여러 개의 레코드를 하나의 그룹으로 그룹화하여 묶여진 결과를 반환하는 쿼리문
+
+주의 ) distinct는 단순히 중복값을 제거한다. */
+
+/* 사원 테이블에서 각 부서별 급여의 합계는 얼마인가요? */
+-- 60번(= IT) 부서의 급여 합계
+select sum(salary) from employees where department_id=60;
+-- 100번(= Finance) 부서의 급여 합계
+select sum(salary) from employees where department_id=100;
+
+/* 1단계 ) 부서가 많은 경우 일일이 부서별로 확인할 수 없으므로 부서를 그룹화한다.
+중복이 제거된 결과로 보이지만 동일한 레코드가 하나의 그룹으로 합쳐진 결과가 인출된다. */
+select department_id
+from employees group by department_id;
+/* 2단계 ) 각 부서별로 급여의 합계를 구할 수 있다. */
+select department_id, sum(salary)
+from employees group by department_id;
+
+/* 아래 쿼리문은 부서 번호를 그룹으로 묶어서 결과를 인출하므로
+이름을 기술하면 에러가 발생한다.
+각 레코드 별로 서로 다른 이름이 저장되어 있으므로
+그룹의 조건에 단일 컬럼을 사용할 수 없기 때문이다. */
+select department_id, sum(salary), first_name
+from employees group by department_id;
+--> fist_name 때문에 에러 발생
+
+/* 퀴즈 ] 사원 테이블에서 각 부서별 사원 수와 평균 급여는 얼마인지 출력하는
+쿼리문을 작성하시오. 출력 시 부서 번호를 기준으로 오름차순 정렬하시오.
+
+- 출력: 부서 번호, 급여 총합, 사원 총합, 평균 급여 */
+select
+    department_id,
+    trim(to_char(sum(salary), '999,000')) sum_salary,
+    count(*) cnt_employee,
+    trim(to_char(floor(avg(salary)), '999,000')) avg_salary
+from employees group by department_id order by department_id;
+
+/* having
+: 물리적으로 존재하는 컬럼이 아닌 그룹 함수를 통해
+논리적으로 생성된 컬럼의 조건을 추가할 때 사용한다.
+해당 조건을 where 절에 추가하면 에러가 발생한다. */
+
+/* 시나리오 ] 사원 테이블에서 각 부서별로 근무하고 있는 직원의
+담당 업무별 사원 수와 평균 급여가 얼마인지 출력하는 쿼리문을 작성하시오.
+단, 사원 수가 10을 초과하는 레코드만 인출하시오. */
+
+/* 같은 부서에서 근무하더라도 담당 업무는 다를 수 있으므로
+이 문제에서는 group by 절에 2개의 컬럼을 명시해야 한다.
+즉, 부서로 그룹화한 후 다시 담당 업무별로 그룹화한다. */
+select
+    department_id, job_id, count(*),
+    trim(to_char(floor(avg(salary)), '999,000')) avg_salary
+from employees
+where count(*)>10                             --> 이 부분에서 에러가 발생된다.
+group by department_id, job_id;
+/* 담당 업무별 사원 수는 물리적으로 존재하는 컬럼이 아니므로
+where 절에 추가하면 에러가 발생한다.
+이 경우에는 having 절에 조건을 추가해야 한다. 
+
+ex ) 급여가 3000인 사원 => 물리적으로 존재하므로 where 절에 추가
+      평균 급여가 3000인 사원 => 개발자가 상황에 맞게 논리적으로 만들어낸 결과이므로
+                                            having 절에 추가해야 함 */
+
+/* 앞에서 발생한 문제는 having 절로 조건을 옮기면 해결된다. */
+select
+    department_id, job_id,
+    count(*),
+    trim(to_char(floor(avg(salary)), '999,000')) avg_salary
+from employees
+group by department_id, job_id
+having count(*)>10;
+
+/* 시나리오 ] 담당 업무별 사원의 최저 급여를 출력하시오.
+단, '관리자(Manager)가 없는 사원과 최저 급여가 3000 미만인 그룹'은 제외시키고
+결과를 급여의 내림차순으로 정렬하여 출력하시오. */
+
+/* 관리자가 없는 사원은 물리적으로 존재하므로 where 절에 기술한다.
+최저 급여는 그룹 함수를 통해 만들어진 결과이므로 having 절에 기술한다.
+select 절에 사용한 가상의 컬럼 (계산식 등)은 order by 절에 사용할 수 있다. */
+select job_id, min(salary)
+from employees where manager_id is not null
+group by job_id having not min(salary)<3000
+order by min(salary) desc;
