@@ -248,5 +248,6 @@ select
     'SALESMAN', sal+180,
     'MANAGER', sal+150,
     'PRESIDENT', sal+100,
-    sal) as salComm
+    sal                 --> default는 원래의 급여를 나타내야 하기 때문에 sal로 설정해야 한다.
+    ) as salComm       
 from emp;

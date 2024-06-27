@@ -172,7 +172,7 @@ select ename, sal, sal+300 from emp;
 
 /* 2. 사원의 이름, 급여, 연봉을 수입이 많은 것부터 작은순으로 출력하시오.
 연봉은 월급에 12를 곱한 후 $100을 더해서 계산하시오. */
-select ename, sal, (sal*12)+100 from emp order by (sal*12)+100 desc;
+select ename, sal, sal*12+100 "연봉" from emp order by sal desc;
 
 /* 3. 급여가 2000을 넘는 사원의 이름과 급여를 내림차순으로 정렬하여 출력하시오. */
 select ename, sal from emp where sal>2000 order by sal desc;
