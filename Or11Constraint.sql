@@ -221,6 +221,8 @@ alter table tb_foreign3 add
             
 ※ 실무에서 스팸 게시물을 남긴 회원과 그 게시글을 일괄적으로 삭제해야 할 때
 사용할 수 있는 옵션이다. 단, 자식 테이블의 모든 레코드가 삭제되므로 사용에 주의해야 한다. */
+
+------------------ 'on delete cascade' 옵션 테스트 ------------------
 create table tb_primary4 (
     user_id varchar2(30) primary key,
     user_name varchar2(100)
@@ -249,3 +251,107 @@ delete from tb_primary4 where user_id='stu1';
 select * from tb_primary4;
 select * from tb_foreign4;
 
+------------------ 'on delete set null' 옵션 테스트 ------------------
+create table tb_primary5 (
+    user_id varchar2(30) primary key,
+    user_name varchar2(100)
+);
+create table tb_foreign5 (
+    f_idx number(10) primary key,
+    f_name varchar2(30),
+    user_id varchar2(30) constraint tb_foreign5_fk
+        references tb_primary5 (user_id)
+            on delete set null
+);
+-- 부모 테이블에 먼저 데이터 입력
+insert into tb_primary5 values ('stu1', '훈련생1');
+-- 그 다음 자식 테이블에 데이터 입력
+insert into tb_foreign5 values (1, '스팸1', 'stu1');
+insert into tb_foreign5 values (2, '스팸2', 'stu1');
+insert into tb_foreign5 values (3, '스팸3', 'stu1');
+insert into tb_foreign5 values (4, '스팸4', 'stu1');
+insert into tb_foreign5 values (5, '스팸5', 'stu1');
+-- 레코드 확인
+select * from tb_primary5;
+select * from tb_foreign5;
+/* on delete set null 옵션으로 자식 테이블의 레코드는 삭제되지 않고 참조키 부분만
+null 값으로 변경된다. 따라서 더이상 참조할 수 없는 레코드로 변경된다. */
+delete from tb_primary5 where user_id='stu1';
+-- 부모 테이블의 레코드는 삭제된다.
+select * from tb_primary5;
+-- 자식 테이블의 레코드는 남아있다. 단, 참조 컬럼이 null로 변경된다.
+select * from tb_foreign5;
+
+/* not null
+: null 값을 허용하지 않는 제약조건,
+- 형식: create table 테이블명 (
+                컬럼명 자료형 not null,
+          );
+          
+※ '컬럼명 자료형 null'
+: null을 허용한다는 의미로 작성했지만 이렇게 사용하지 않는다.
+null을 기술하지 않으면 자동으로 허용한다는 의미가 된다. */
+create table tb_not_null (
+    idx number(10) primary key,              --> PK이므로 NN
+    id varchar2(20) not null,                    --> NN
+    pwv varchar2(30) null,                       --> null 허용, 일반적으로 이렇게 쓰지 않는다.
+    name varchar2(40)                           --> null 허용, 이와 같이 선언한다.
+);
+desc tb_not_null;
+-- 1 ~ 3까지는 정상적으로 입력된다.
+insert into tb_not_null values (1, 'hong1', '1111', '홍길동');
+insert into tb_not_null values (2, 'hong2', '2222', '');
+insert into tb_not_null values (3, 'hong3', '', '');
+/* id는 NN으로 지정되었으므로 null 값을 입력할 수 없다.
+에러 발생한다. */
+insert into tb_not_null values (4, '', '', '');    
+-- 입력 성공, space도 문자이므로 입력된다.
+insert into tb_not_null values (5, ' ', '5555', '오길동');
+/* insert 쿼리에서 컬럼을 명시하지 않으면 null 값이 입력된다.
+따라서 index 컬럼에는 null을 입력할 수 없으므로 에러가 발생한다. */
+insert into tb_not_null (id, pw, name) values ('hong6', '6666', '육길동');
+
+select * from tb_not_null;
+
+/* default
+: insert 시 아무런 값도 입력하지 않았을 때 자동으로 삽입되는 데이터를 지정할 수 있다. */
+create table tb_default (
+    id varchar2(30) not null,
+    pw varchar2(50) default 'qwer'
+);
+select * from tb_default;
+insert into tb_default values ('aaa', '1234');          --> 1234 입력
+insert into tb_default (id) values ('bbb');             --> 컬럼을 제외하면 default 값 입력
+insert into tb_default values ('ccc', '');                --> null 값 입력
+insert into tb_default values ('ddd', ' ');               --> 공백 (space) 입력
+insert into tb_default values ('eee', default);        --> default 값 입력
+/* default 값을 입력하려면 insert문에서
+컬럼 자체를 제외 시키거나 default 키워드를 사용해야 한다.*/
+
+/* check
+: domain (자료형) 무결성을 유지하기 위한 제약조건,
+해당 컬럼에 잘못된 데이터가 입력되지 않도록 유지하는 제약조건이다. */
+
+-- M, F 만 입력을 허용하는 check 제약조건 지정
+create table tb_check1 (
+    gender char(1) not null
+        constraint check_gender
+            check (gender in ('M', 'F'))
+);
+insert into tb_check1 values ('M');
+insert into tb_check1 values ('F');
+-- check 제약조건 위배로 오류가 발생된다.
+insert into tb_check1 values ('T');
+-- 입력된 데이터가 컬럼의 크기보다 크므로 오류가 발생된다. 
+insert into tb_check1 values ('트렌스젠더');
+
+-- 10 이하의 값만 입력할 수 있는 check 제약조건 지정
+create table tb_check2 (
+    sale_count number not null
+        check (sale_count <= 10)
+);
+-- 9와 10은 입력 성공
+insert into tb_check2 values (9);
+insert into tb_check2 values (10);
+-- 11은 제약조건 위배로 입력 실패, 오류가 발생한다.
+insert into tb_check2 values (11);
